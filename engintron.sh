@@ -186,18 +186,18 @@ function remove_mod_rpaf {
 
 function apache_change_port {
 
-    echo "=== Switch Apache to ports 8080 & 8443, distill changes & restart Apache ==="
+    echo "=== Switch Apache to ports 8081 & 8444, distill changes & restart Apache ==="
 
     if [ -f /usr/local/cpanel/bin/whmapi1 ]; then
-        /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_port value=0.0.0.0:8080
-        /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:8443
+        /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_port value=0.0.0.0:8081
+        /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:8444
     else
         if grep -Fxq "^apache_" /var/cpanel/cpanel.config; then
-            sed -i 's/^apache_port=.*/apache_port=0.0.0.0:8080/' /var/cpanel/cpanel.config
-            sed -i 's/^apache_ssl_port=.*/apache_ssl_port=0.0.0.0:8443/' /var/cpanel/cpanel.config
+            sed -i 's/^apache_port=.*/apache_port=0.0.0.0:8081/' /var/cpanel/cpanel.config
+            sed -i 's/^apache_ssl_port=.*/apache_ssl_port=0.0.0.0:8444/' /var/cpanel/cpanel.config
         else
-            echo "apache_port=0.0.0.0:8080" >> /var/cpanel/cpanel.config
-            echo "apache_ssl_port=0.0.0.0:8443" >> /var/cpanel/cpanel.config
+            echo "apache_port=0.0.0.0:8081" >> /var/cpanel/cpanel.config
+            echo "apache_ssl_port=0.0.0.0:8444" >> /var/cpanel/cpanel.config
         fi
         /usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings
     fi
@@ -256,7 +256,7 @@ function install_nginx {
 
     # Disable Nginx from the EPEL repo
     if [ -f /etc/yum.repos.d/epel.repo ]; then
-        if ! grep -q "^exclude=nginx\*" /etc/yum.repos.d/epel.repo ; then
+        if ! grep -q "^exclude=nginx\*" /etc/yum.repos.d/epel.repo; then
             if grep -Fq "#exclude=nginx*" /etc/yum.repos.d/epel.repo; then
                 sed -i "s/\#exclude=nginx\*/exclude=nginx\*/" /etc/yum.repos.d/epel.repo
             else
@@ -270,7 +270,7 @@ function install_nginx {
 
     # Disable Nginx from the Amazon Linux repo
     if [ -f /etc/yum.repos.d/amzn-main.repo ]; then
-        if ! grep -q "^exclude=nginx\*" /etc/yum.repos.d/amzn-main.repo ; then
+        if ! grep -q "^exclude=nginx\*" /etc/yum.repos.d/amzn-main.repo; then
             if grep -Fq "#exclude=nginx*" /etc/yum.repos.d/amzn-main.repo; then
                 sed -i "s/\#exclude=nginx\*/exclude=nginx\*/" /etc/yum.repos.d/amzn-main.repo
             else
@@ -402,7 +402,7 @@ EOFS
 
     # Adjust log rotation to 7 days
     if [ -f /etc/logrotate.d/nginx ]; then
-        sed -i 's:rotate .*:rotate 7:' /etc/logrotate.d/nginx 
+        sed -i 's:rotate .*:rotate 7:' /etc/logrotate.d/nginx
     fi
 
     echo ""
@@ -489,8 +489,8 @@ function install_munin_patch {
             cat >> "/etc/munin/plugin-conf.d/cpanel.conf" <<EOF
 
 [apache_status]
-env.ports 8080
-env.label 8080
+env.ports 8081
+env.label 8081
 EOF
         fi
 
@@ -512,8 +512,8 @@ function remove_munin_patch {
 
         if grep -q "\[apache_status\]" /etc/munin/plugin-conf.d/cpanel.conf; then
             sed -i 's:\[apache_status\]::' /etc/munin/plugin-conf.d/cpanel.conf
-            sed -i 's:env\.ports 8080::' /etc/munin/plugin-conf.d/cpanel.conf
-            sed -i 's:env\.label 8080::' /etc/munin/plugin-conf.d/cpanel.conf
+            sed -i 's:env\.ports 8081::' /etc/munin/plugin-conf.d/cpanel.conf
+            sed -i 's:env\.label 8081::' /etc/munin/plugin-conf.d/cpanel.conf
         else
             echo "Munin was not found, nothing to do here"
         fi
@@ -601,7 +601,7 @@ function chkserv_nginx_on {
         echo ""
         echo "=== Enable TailWatch chkservd driver for Nginx ==="
 
-        sed -i 's:service\[httpd\]=80,:service[httpd]=8080,:' /etc/chkserv.d/httpd
+        sed -i 's:service\[httpd\]=80,:service[httpd]=8081,:' /etc/chkserv.d/httpd
         echo "nginx:1" >> /etc/chkserv.d/chkservd.conf
         if [ ! -f /etc/chkserv.d/nginx ]; then
             touch /etc/chkserv.d/nginx
@@ -619,7 +619,7 @@ function chkserv_nginx_off {
         echo ""
         echo "=== Disable TailWatch chkservd driver for Nginx ==="
 
-        sed -i 's:service\[httpd\]=8080,:service[httpd]=80,:' /etc/chkserv.d/httpd
+        sed -i 's:service\[httpd\]=8081,:service[httpd]=80,:' /etc/chkserv.d/httpd
         sed -i 's:^nginx\:1::' /etc/chkserv.d/chkservd.conf
         if [ -f /etc/chkserv.d/nginx ]; then
             /bin/rm -f /etc/chkserv.d/nginx
@@ -713,9 +713,9 @@ install)
     /scripts/restartsrv apache_php_fpm
     /scripts/restartsrv_httpd
     fuser -k 80/tcp
-    fuser -k 8080/tcp
+    fuser -k 8081/tcp
     fuser -k 443/tcp
-    fuser -k 8443/tcp
+    fuser -k 8444/tcp
     service nginx start
 
     csf_pignore_add
@@ -806,23 +806,23 @@ enable)
     install_munin_patch
     service nginx stop
 
-    sed -i 's:PROXY_TO_PORT 443;:PROXY_TO_PORT 8443;:' /etc/nginx/common_https.conf
+    sed -i 's:PROXY_TO_PORT 443;:PROXY_TO_PORT 8444;:' /etc/nginx/common_https.conf
 
-    sed -i 's:listen 8080 default_server:listen 80 default_server:' /etc/nginx/conf.d/default.conf
-    sed -i 's:listen [\:\:]\:8080 default_server:listen [\:\:]\:80 default_server:' /etc/nginx/conf.d/default.conf
+    sed -i 's:listen 8081 default_server:listen 80 default_server:' /etc/nginx/conf.d/default.conf
+    sed -i 's:listen [\:\:]\:8081 default_server:listen [\:\:]\:80 default_server:' /etc/nginx/conf.d/default.conf
     sed -i 's:deny all; #:# deny all; #:' /etc/nginx/conf.d/default.conf
-    sed -i 's:PROXY_TO_PORT 8080;:PROXY_TO_PORT 80;:' /etc/nginx/conf.d/default.conf
-    sed -i 's:\:80; # Apache Status Page:\:8080; # Apache Status Page:' /etc/nginx/conf.d/default.conf
+    sed -i 's:PROXY_TO_PORT 8081;:PROXY_TO_PORT 80;:' /etc/nginx/conf.d/default.conf
+    sed -i 's:\:80; # Apache Status Page:\:8081; # Apache Status Page:' /etc/nginx/conf.d/default.conf
 
     if [ -f /etc/nginx/conf.d/default_https.conf ]; then
-        sed -i 's:listen 8443 ssl:listen 443 ssl:g' /etc/nginx/conf.d/default_https.conf
-        sed -i 's:listen [\:\:]\:8443 ssl:listen [\:\:]\:443 ssl:g' /etc/nginx/conf.d/default_https.conf
+        sed -i 's:listen 8444 ssl:listen 443 ssl:g' /etc/nginx/conf.d/default_https.conf
+        sed -i 's:listen [\:\:]\:8444 ssl:listen [\:\:]\:443 ssl:g' /etc/nginx/conf.d/default_https.conf
         sed -i 's:deny all; #:# deny all; #:g' /etc/nginx/conf.d/default_https.conf
     fi
 
     sed -i 's:deny all; #:# deny all; #:g' /etc/nginx/utilities/https_vhosts.php
-    sed -i 's:'HTTPD_HTTPS_PORT', '443':'HTTPD_HTTPS_PORT', '8443':' /etc/nginx/utilities/https_vhosts.php
-    sed -i 's:'NGINX_HTTPS_PORT', '8443':'NGINX_HTTPS_PORT', '443':' /etc/nginx/utilities/https_vhosts.php
+    sed -i 's:'HTTPD_HTTPS_PORT', '443':'HTTPD_HTTPS_PORT', '8444':' /etc/nginx/utilities/https_vhosts.php
+    sed -i 's:'NGINX_HTTPS_PORT', '8444':'NGINX_HTTPS_PORT', '443':' /etc/nginx/utilities/https_vhosts.php
 
     apache_change_port
     service nginx start
@@ -854,23 +854,23 @@ disable)
     remove_munin_patch
     service nginx stop
 
-    sed -i 's:PROXY_TO_PORT 8443;:PROXY_TO_PORT 443;:' /etc/nginx/common_https.conf
+    sed -i 's:PROXY_TO_PORT 8444;:PROXY_TO_PORT 443;:' /etc/nginx/common_https.conf
 
-    sed -i 's:listen 80 default_server:listen 8080 default_server:' /etc/nginx/conf.d/default.conf
-    sed -i 's:listen [\:\:]\:80 default_server:listen [\:\:]\:8080 default_server:' /etc/nginx/conf.d/default.conf
+    sed -i 's:listen 80 default_server:listen 8081 default_server:' /etc/nginx/conf.d/default.conf
+    sed -i 's:listen [\:\:]\:80 default_server:listen [\:\:]\:8081 default_server:' /etc/nginx/conf.d/default.conf
     sed -i 's:# deny all; #:deny all; #:' /etc/nginx/conf.d/default.conf
-    sed -i 's:PROXY_TO_PORT 80;:PROXY_TO_PORT 8080;:' /etc/nginx/conf.d/default.conf
-    sed -i 's:\:8080; # Apache Status Page:\:80; # Apache Status Page:' /etc/nginx/conf.d/default.conf
+    sed -i 's:PROXY_TO_PORT 80;:PROXY_TO_PORT 8081;:' /etc/nginx/conf.d/default.conf
+    sed -i 's:\:8081; # Apache Status Page:\:80; # Apache Status Page:' /etc/nginx/conf.d/default.conf
 
     if [ -f /etc/nginx/conf.d/default_https.conf ]; then
-        sed -i 's:listen 443 ssl:listen 8443 ssl:g' /etc/nginx/conf.d/default_https.conf
-        sed -i 's:listen [\:\:]\:443 ssl:listen [\:\:]\:8443 ssl:g' /etc/nginx/conf.d/default_https.conf
+        sed -i 's:listen 443 ssl:listen 8444 ssl:g' /etc/nginx/conf.d/default_https.conf
+        sed -i 's:listen [\:\:]\:443 ssl:listen [\:\:]\:8444 ssl:g' /etc/nginx/conf.d/default_https.conf
         sed -i 's:# deny all; #:deny all; #:g' /etc/nginx/conf.d/default_https.conf
     fi
 
     sed -i 's:# deny all; #:deny all; #:g' /etc/nginx/utilities/https_vhosts.php
-    sed -i 's:'HTTPD_HTTPS_PORT', '8443':'HTTPD_HTTPS_PORT', '443':' /etc/nginx/utilities/https_vhosts.php
-    sed -i 's:'NGINX_HTTPS_PORT', '443':'NGINX_HTTPS_PORT', '8443':' /etc/nginx/utilities/https_vhosts.php
+    sed -i 's:'HTTPD_HTTPS_PORT', '8444':'HTTPD_HTTPS_PORT', '443':' /etc/nginx/utilities/https_vhosts.php
+    sed -i 's:'NGINX_HTTPS_PORT', '443':'NGINX_HTTPS_PORT', '8444':' /etc/nginx/utilities/https_vhosts.php
 
     apache_revert_port
     service nginx start
@@ -1146,8 +1146,8 @@ Main commands:
     install          Install, re-install or update Engintron (enables Nginx by default).
                      Add optional flag "mainline" to install Nginx mainline release.
     remove           Remove Engintron completely.
-    enable           Set Nginx to ports 80/443 & Apache to ports 8080/8443
-    disable          Set Nginx to ports 8080/8443 & switch Apache to ports 80/443
+    enable           Set Nginx to ports 80/443 & Apache to ports 8081/8444
+    disable          Set Nginx to ports 8081/8444 & switch Apache to ports 80/443
     purgecache       Purge Nginx's "cache" & "temp" folders,
                      then restart both Apache & Nginx
     purgelogs        Purge Nginx's access & error log files
