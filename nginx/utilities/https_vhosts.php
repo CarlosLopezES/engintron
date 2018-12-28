@@ -18,7 +18,7 @@ if (file_exists('/etc/apache2/conf/httpd.conf') && is_readable('/etc/apache2/con
     define('HTTPD_CONF', '/usr/local/apache/conf/httpd.conf');
 }
 define('HTTPD_CONF_LAST_CHANGED', 15); /* In seconds */
-define('HTTPD_HTTPS_PORT', '8443');
+define('HTTPD_HTTPS_PORT', '8444');
 define('NGINX_HTTPS_PORT', '443');
 define('NGINX_DEFAULT_HTTPS_VHOST', '/etc/nginx/conf.d/default_https.conf');
 
@@ -77,7 +77,7 @@ server {
     }
 
     location = /whm-server-status {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8081;
         # Comment the following 2 lines to make the Apache status page public
         allow 127.0.0.1;
         deny all;
